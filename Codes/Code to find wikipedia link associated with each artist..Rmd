@@ -1,0 +1,145 @@
+---
+title: "Scraping Wikipedia Artist Info"
+date: "10/7/2018"
+output: html_document
+---
+
+Remove Objects from Environment
+```{r}
+ls()
+rm(list = ls())
+```
+
+```{r}
+suppressMessages(library(rvest))
+suppressMessages(library(tidyverse))
+suppressMessages(library(magrittr))
+suppressMessages(library(scales))
+suppressMessages(library(knitr))
+suppressMessages(library(lubridate))
+suppressMessages(library(plyr))
+suppressMessages(library(dplyr))
+suppressMessages(library(xml2))
+suppressMessages(library(rvest))
+```
+
+Load RDS file that contains the list of artist that we need:
+```{r}
+canada<-readRDS(file = "spotify_CA.rds")
+usa<-readRDS(file = "spotify_USA.rds")
+artist.info<-rbind(usa,canada)
+artist.info<-artist.info[,3]
+artist.info<-data_frame(unique(artist.info))
+names(artist.info) <- c("Artist")
+head(artist.info)
+```
+
+
+```{r}
+View(artist.info)
+
+
+#Keep only artist that have information at http://lyrics.wikia.com
+artist.info<-data.frame(artist.info[-c(8,17,19,26,33,34,42,43,50,55,56,58,68,76,77,78,79,81,93,96,100,103,134,138,142,143,151,159,160,163,164,165,168,173,185,206),,row_number(FALSE)])
+names(artist.info) <- c("Artist")
+
+#I had to remove 42 twice, not sure why
+artist.info<-data.frame(artist.info[-c(1:8),,row_number(FALSE)])
+names(artist.info) <- c("Artist")
+```
+
+Artist without a Wikipedia link:
+Sheck Wes
+benny blanco
+Lil Mosey
+Flipp Dinero
+Bryce Vine
+Silk City
+Dean Lewis
+Nio Garcia
+Social House
+Lil Skies
+Rich The Kid
+Famous Dex
+YNW Melly
+YBN Nahmir
+Smokepurpp
+Loud Luxury
+Dynoro
+Ava Max
+NAV
+Gryffin
+Gunna
+Normani
+Vice
+Bob"Boris" Pickett & The Crypt-Kickers
+The Citizens of Halloween
+Bob"Boris" Pickett
+Carly Rae Jepsen
+Moneybagg Yo
+Mitchell Tenpenny
+K/DA
+Comethazine
+Kris Kross Amsterdam
+GASHI
+Pressa
+The City of Prague Philharmonic Orchestra
+Offset
+J.I.D
+KILLY
+
+```{r}
+# navigate to each song's URL and scrape the link from wikipedia, which is in this node "".extiw""
+
+#Create a function that will make the 1st letter of each
+
+## empty vectors
+lyrics <- c()
+## specify row number to add to data frame
+number <- 1
+## for-loop and create data frame from the two vectors
+for(i in seq_along(artist.info$Artist)) {
+  
+        #we are pulling the row from the main file artist.info$Artist i.e. "Post Malone"
+        for_url_name <- artist.info$Artist[i]
+        #we are eliminating spaces and making lower case each row i.e. "Post_Malone"
+        for_url_name <- str_replace_all(for_url_name,"\\s+","_")
+        ## create url i.e. [1] "http://lyrics.wikia.com/wiki/Post_Malone"
+        paste_url <- paste0("http://lyrics.wikia.com/wiki/", for_url_name)
+        ## we are hitting the website and getting the data that we need = this out put looks messy
+        for_html_code <- read_html(paste_url)
+        #scrape link from website to get the wikipedia link for the artist = [1] "http://en.wikipedia.org/wiki/Post_Malone"
+        for_lyrics <- html_attr(html_nodes(for_html_code, ".extiw"), "href")
+        ## add for_lyrics to respective vectors 
+        lyrics[number] <- for_lyrics
+        number <- number + 1
+        ## status check
+        show(paste0(for_url_name, " scrape complete!"))
+        ## optional: add in 3 second delay to avoid IP block
+        Sys.sleep(2)
+
+                                      }
+```
+
+
+```{r}
+set3<-data.frame(lyrics)
+
+set1<-data.frame(set1)
+names(set1) <- c("Link")
+
+set2<-data.frame(set2)
+names(set2) <- c("Link")
+
+set3<-data.frame(set3)
+names(set3) <- c("Link")
+
+final<-rbind(set1, set2, set3)
+View(final)
+NROW(final)
+
+# Saving object to a file.
+saveRDS(final, file = "wiki_links.rds")
+# Write CSV in R
+write.csv(final, file = "wiki_links.csv")
+```

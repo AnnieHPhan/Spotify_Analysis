@@ -1,0 +1,113 @@
+---
+title: "Scraping Wikipedia Artist Info"
+author: "Jorge Argueta (from Datacritics by Jake Daniels)"
+date: "10/7/2018"
+output: html_document
+---
+
+Remove Objects from Environment
+```{r}
+ls()
+rm(list = ls())
+```
+
+```{r}
+suppressMessages(library(rvest))
+suppressMessages(library(rvest))
+suppressMessages(library(tidyverse))
+suppressMessages(library(tidyverse))
+suppressMessages(library(magrittr))
+suppressMessages(library(scales))
+suppressMessages(library(knitr))
+suppressMessages(library(lubridate))
+```
+
+Load RDS file that contains the list of artist that we need:
+```{r}
+#Read list of link from RDS file
+finalurl_rds<-readRDS(file = "wiki_links.rds")
+#finalurl_rds <- read.csv(file="links_test.csv", header=TRUE, sep=",")
+finalurl_rds<-finalurl_rds$Link
+head(finalurl_rds)
+```
+
+Function to create list of links
+
+```{r}
+unitedata<- function(x){
+ full_url <- paste0(x)
+ full_url
+}
+finalurl <- unitedata(finalurl_rds)
+NROW(finalurl)
+head(finalurl)
+```
+
+```{r}
+#class(finalurl$Link)
+#str(finalurl)
+#nrow(finalurl)
+#Keep only four rows for testing
+#finalurl<-head(finalurl)
+#Convert data frame into a string representation
+#finalurl<-as.character(finalurl)
+class(finalurl)
+str(finalurl)
+View(finalurl)
+```
+
+Shopping for Attributes with SelectorGadget(use goolge CHROME and make it an extension)
+```{r}
+SpotifyScrape <- function(x){
+ page <- x
+ #page <- "https://en.wikipedia.org/wiki/DJ_Snake"
+ #page <- "http://en.wikipedia.org/wiki/Lil_Peep"
+ #page <- "http://en.wikipedia.org/wiki/Marshmello"
+ 
+ #name <- page %>% read_html() %>% html_nodes('#firstHeading') %>% html_text() %>% as.data.frame()
+ #birthplace <- page %>% read_html() %>% html_nodes('span.birthplace') %>% html_text() %>% as.data.frame()
+ #nickname <- page %>% read_html() %>% html_nodes('span.nickname') %>% html_text() %>% as.data.frame()
+ #occupation <- page %>% read_html() %>% html_nodes('td.role') %>% html_text() %>% as.data.frame()
+ infobox <- page %>% read_html() %>% html_nodes('table.infobox.biography.vcard') %>% html_text() %>% as.data.frame()
+ #infobox <- page %>% read_html() %>% html_nodes('.plainlist') %>% html_text() %>% as.data.frame()
+
+ 
+#combine, name, and make it a tibble
+ #chart <- cbind(birthplace, nickname, occupation, infobox)
+ #chart <- cbind(occupation, infobox)
+ chart <- cbind(infobox)
+
+ #names(chart) <- c("Birthplace", "Nickname", "Occupation", "Infobox")
+ #names(chart) <- c("Occupation", "Infobox")
+ names(chart) <- c("infobox")
+
+
+ chart <- as.tibble(chart)
+ return(chart)
+}
+```
+
+
+This step will take a couple or minutes...span.noprint.ForceAgeToShow
+```{r}
+spotify <- map_df(finalurl, SpotifyScrape)
+```
+
+Print output
+```{r}
+NROW(spotify)
+View(spotify)
+FINAL<-cbind(finalurl,spotify)
+write.csv(finalurl, file ="finalurl.csv" )
+write.csv(infobox_n57, file ="infobox_n57.csv" )
+
+
+```
+Clean Data
+```{r}
+Name_of_artist<-spotify
+infobox_n57<- spotify
+infobox_n306<- spotify
+
+```
+

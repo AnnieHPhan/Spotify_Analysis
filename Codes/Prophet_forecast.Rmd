@@ -1,0 +1,50 @@
+
+
+
+```{r}
+suppressWarnings(library(prophet))
+suppressWarnings(library(tseries))
+suppressWarnings(library(forecast))
+suppressMessages(library(tidyverse))
+```
+
+```{r}
+getwd()
+setwd("~/Google Drive/MScA/MSCA_31012 Data Engineering/Final Project")
+```
+
+Recover Spotify Table files:
+```{r}
+df <- readRDS("spotify_prophet_ready.rds")
+head(df);tail(df)
+```
+
+# Rename columns
+```{r}
+colnames(df)[colnames(df)=="Date"] <- "ds"
+colnames(df)[colnames(df)=="Total_Daily_Streams"] <- "y"
+```
+
+```{r}
+# R
+m <- prophet(df)
+```
+
+```{r}
+future <- make_future_dataframe(m, periods = 27)
+tail(future)
+```
+
+```{r}
+forecast <- predict(m, future)
+tail(forecast[c('ds', 'yhat', 'yhat_lower', 'yhat_upper')])
+```
+
+```{r}
+plot(m, forecast)
+```
+
+```{r}
+prophet_plot_components(m, forecast)
+```
+
